@@ -1,7 +1,7 @@
 [project]
 name = "cathaydidisdk"
 version = "0.1.0"
-description = "Add your description here"
+description = "cathaydidisdk"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -10,3 +10,10 @@ dependencies = [
     "pydantic>=2.11.9",
     "python-dotenv>=1.1.1",
 ]
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = {find = {where = ["src"]}}
