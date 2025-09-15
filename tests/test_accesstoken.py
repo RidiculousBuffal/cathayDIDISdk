@@ -8,4 +8,6 @@ if __name__ == '__main__':
         cli = DIDIBaseClient()
         res = await cli.get_access_token()
         print(res)
+        res2 = await cli.get_access_token()
+        print(res2)
     asyncio.run(main())

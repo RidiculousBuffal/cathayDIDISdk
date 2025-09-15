@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional
 import httpx
 
 from . import limits, timeout
+from .Model.AccessToken import AccessToken
 
 
 class DIDIBaseClient:
@@ -16,10 +17,10 @@ class DIDIBaseClient:
     该类封装了必要的认证信息、签名逻辑和 access_token 的获取与管理。
     所有网络请求均使用 httpx 进行异步操作。
     """
-    BASE_URL = "https://api.es.xiaojukeji.com/"
+    BASE_URL = "https://api.es.xiaojukeji.com"
 
     def __init__(self, client_id: Optional[str] = None, client_secret: Optional[str] = None,
-                 sign_key: Optional[str] = None, phone_number: Optional[str] = None,
+                 sign_key: Optional[str] = None, phone_number: Optional[str] = None, company_id: Optional[str] = None,
                  logger: Optional[logging.Logger] = None):  # 2. 新增 logger 参数
         """
         初始化客户端。
@@ -43,7 +44,7 @@ class DIDIBaseClient:
         self.client_secret = client_secret or os.getenv('DIDI_CLIENT_SECRET')
         self.sign_key = sign_key or os.getenv('DIDI_SIGN_KEY')
         self.phone_number = phone_number or os.getenv('DIDI_PHONE_NUMBER')
-
+        self.company_id = company_id or os.getenv('DIDI_COMPANY_ID')
         # 2. 初始化 logger
         if logger:
             self.logger = logger
@@ -62,9 +63,22 @@ class DIDIBaseClient:
             raise ValueError("配置错误: 'DIDI_CLIENT_SECRET' 必须通过参数或环境变量提供。")
         if not self.sign_key:
             raise ValueError("配置错误: 'DIDI_SIGN_KEY' 必须通过参数或环境变量提供。")
-
+        if not self.company_id:
+            raise ValueError("配置错误: 'DIDI_COMPANY_ID' 必须通过参数或环境变量提供。")
         self._access_token: Optional[str] = None
         self._token_expires_at: int = 0
+
+    async def getCommonPayload(self, client_id=True, access_token=True, timestamp=True, company_id=True):
+        res = {}
+        if access_token:
+            res['access_token'] = (await self.get_access_token()).access_token
+        if company_id:
+            res['company_id'] = self.company_id
+        if timestamp:
+            res['timestamp'] = int(time.time())
+        if client_id:
+            res['client_id'] = self.client_id
+        return res
 
     def _generate_sign(self, params: Dict[str, Any], sign_method: str = 'md5') -> str:
         """
@@ -89,7 +103,7 @@ class DIDIBaseClient:
         else:
             return hashlib.md5(str_to_sign.encode('utf-8')).hexdigest()
 
-    async def get_access_token(self, force_refresh: bool = False) -> Dict[str, Any]:
+    async def get_access_token(self, force_refresh: bool = False) -> AccessToken:
         """
         异步获取接口访问凭证 access_token。
 
@@ -108,16 +122,16 @@ class DIDIBaseClient:
         """
         if not force_refresh and self._access_token and self._token_expires_at > time.time() + 60:
             self.logger.debug("从缓存中返回有效的 access_token。")
-            return {
+            return AccessToken.model_validate({
                 "access_token": self._access_token,
                 "expires_in": int(self._token_expires_at - time.time()),
                 "from_cache": True
-            }
+            })
 
         # 3. 将 print 替换为 logger.info
         self.logger.info("正在向滴滴服务器异步请求新的 access_token...")
         endpoint = "/river/Auth/authorize"
-        url = self.BASE_URL.rstrip('/') + endpoint
+        url = self.BASE_URL + endpoint
 
         payload = {
             "client_id": self.client_id,
@@ -144,7 +158,7 @@ class DIDIBaseClient:
             expires_in = data.get("expires_in", 1800)
             self._token_expires_at = int(time.time()) + expires_in
             self.logger.info("成功获取并缓存了新的 access_token。")
-            return data
+            return AccessToken.model_validate(data)
 
         except httpx.RequestError as e:
             self.logger.error(f"网络请求错误: {e}", exc_info=True)
