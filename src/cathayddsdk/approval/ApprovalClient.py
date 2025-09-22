@@ -33,7 +33,6 @@ class DIDIApprovalClient(DIDIBaseClient):
             payload = await self.getCommonPayload()
             payload.update(approval_json)
             payload['sign'] = self._generate_sign(payload)
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
             headers = {
                 HeaderNames.CONTENT_TYPE: MimeTypes.APPLICATION_JSON
             }
