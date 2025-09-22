@@ -1,0 +1,14 @@
+{
+  "approval_type": 1,
+  "regulation_id": "1125977651872720",
+  "policy_type": 3,
+  "member_type": 0,
+  "policy_type_value": "18610933682",
+  "out_approval_id": "ID01MlokBaKpCT",
+  "phone": "18610933682",
+  "travel_detail": "{\"start_date\": \"2025-09-11\", \"end_date\": \"2025-09-11\", \"trips\": [{\"start_date\": \"2025-09-11\", \"end_date\": \"2025-09-11\", \"to_citys\": [{\"address_dimension\": 0, \"id\": 4, \"name\": \"上海市\"}, {\"address_dimension\": 0, \"id\": 5, \"name\": \"杭州市\"}], \"departure_city\": \"上海市\"}], \"end_city_rule\": 1}",
+  "budget_center_id": "1125976982764053",
+  "name": "凯辉投资咨询（上海）有限公司 (#CODE1)",
+  "out_budget_id": "10",
+  "reason": ""
+}
