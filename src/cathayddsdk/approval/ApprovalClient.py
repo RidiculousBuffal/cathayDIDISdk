@@ -38,3 +38,14 @@ class DIDIApprovalClient(DIDIBaseClient):
             }
             res = await client.post(f'{self.BASE_URL}/river/Approval/create', json=payload, headers=headers)
             return res.json()
+    async def cancelApprovalTicket(self, approval_id):
+        async with httpx.AsyncClient(limits=limits, timeout=timeout) as client:
+            payload = await self.getCommonPayload()
+            payload['approval_id'] = approval_id
+            payload['is_force']=1
+            payload['sign'] = self._generate_sign(payload)
+            headers = {
+                HeaderNames.CONTENT_TYPE: MimeTypes.APPLICATION_JSON
+            }
+            res = await client.post(f'{self.BASE_URL}/river/Approval/cancel', json=payload, headers=headers)
+            return res.json()
